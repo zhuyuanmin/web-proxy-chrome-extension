@@ -1,0 +1,138 @@
+console.log("inject.js has loaded!");
+let respOk = null;
+let respErr = null;
+let timer = null;
+
+function callback(cb, flag) {
+  cb(respOk || respErr, respOk ? true : false);
+  if (flag) {
+    respOk = null;
+    respErr = null;
+    clearInterval(timer);
+  }
+}
+
+ah.proxy({
+  //请求发起前进入
+  onRequest: (config, handler) => {
+    console.log("发生请求,请求地址: " + config.url);
+    
+    if (config.url.indexOf(location.origin) > -1 || /^\//.test(config.url)) {
+      // 同源请求
+      handler.next(config);
+    } else {
+      const {xhr, ...rest} = config;
+      const obj = rest;
+      obj.request = true;
+      window.postMessage(obj, "*");
+
+      timer = setInterval(() => {
+        callback(res => {
+          if (res) {
+            clearInterval(timer);
+            handler.next({ url: '' });
+          }
+        })
+      }, 30);
+    }
+  },
+  //请求发生错误时进入，比如超时；注意，不包括http状态码错误，如404仍然会认为请求成功
+  onError: (err, handler) => {
+    if (err && (err.config.url.indexOf(location.origin) > -1 || /^\//.test(err.config.url))) {
+      // 同源请求
+      console.log("发生错误,错误信息: " + err.error.type);
+      handler.next(err.error.type);
+    } else {
+      callback(res => {
+        if (res) {
+          console.log("发生错误,错误信息: " + res);
+          handler.next(res);
+        }
+      }, true)
+    }
+  },
+  //请求成功后进入
+  onResponse: (response, handler) => {
+    if (response && (response.config.url.indexOf(location.origin) > -1 || /^\//.test(response.config.url))) {
+      // 同源请求
+      console.log("请求成功,反馈信息: ", response);
+      handler.next(response);
+    } else {
+      callback(res => {
+        if (res) {
+          console.log("请求成功,反馈信息: ", res);
+          handler.next(res);
+        }
+      }, true)
+    }
+  },
+});
+
+const newFetch = fetch
+Object.defineProperty(window, "fetch", {
+  configurable: true,
+  enumerable: true,
+  // writable: true,
+  get() {
+    return (url, options = {}) => {
+      console.log("发生请求,请求地址: " + url);
+      options.url = url;
+      options.request = true;
+
+      if (options.url.indexOf(location.origin) > -1 || /^\//.test(options.url)) {
+        // 同源请求
+        return new Promise((resolve, reject) => {
+          newFetch(url, options)
+            .then(res => {
+              const contentType = res.headers.get('content-type');
+              if (contentType.indexOf('application/json') > -1) {
+                return res.json()
+              }
+              if (options.responseType === 'blob') {
+                return res
+              }
+              return res.text()
+            })
+            .then(resolve)
+            .catch(reject);
+        })
+      } else {
+        window.postMessage(options, "*");
+
+        return new Promise((resolve, reject) => {
+          timer = setInterval(() => {
+            callback(res => {
+              if (res) {
+                clearInterval(timer);
+
+                callback((res, flag) => {
+                  if (res) {
+                    if (flag) {
+                      console.log("请求成功,反馈信息: ", res);
+                      resolve(res);
+                    } else {
+                      console.log("发生错误,错误信息: " + res);
+                      reject(res);
+                    }
+                  }
+                }, true)
+                
+              }
+            })
+          }, 30);
+        })
+      }
+    };
+  },
+});
+
+window.addEventListener("message", function (e) {
+  const { data, error, response } = e.data;
+  if (response) {
+    if (error) {
+      respErr = error;
+    } else {
+      respOk = data;
+    }
+  }
+});
