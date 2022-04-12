@@ -9,7 +9,7 @@ chrome.runtime.onMessage.addListener(function (e, sender) {
     fetch(url, options)
       .then(res => {
         resp = res
-        const contentType = res.headers.get('content-type');
+        const contentType = res.headers.get('content-type') || '';
         if (contentType.indexOf('application/json') > -1) {
           return res.json()
         }
