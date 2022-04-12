@@ -40,4 +40,4 @@ axios.post('https://www.baidu.com', {
 ```
 
 # 博文及实现原理分享
-详见[>>> 掘金](https://juejin.cn/post/7085531817024946213/)
+详见 [>>> 掘金](https://juejin.cn/post/7085531817024946213/)
