@@ -39,5 +39,5 @@ axios.post('https://www.baidu.com', {
 .catch(err => console.log(err))
 ```
 
-# 博文及实现原理
-见掘金
+# 博文及实现原理分享
+详见[>>> 掘金](https://juejin.cn/post/7085531817024946213/)
