@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Proxy",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "一款支持跨域的Chrome扩展插件",
   "icons": {
     "16": "img/icon.png",

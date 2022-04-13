@@ -14,16 +14,28 @@ chrome.runtime.onMessage.addListener(function (e, sender) {
           return res.json()
         }
         if (options.responseType === 'blob') {
-          return res
+          return res.blob()
         }
         return res.text()
       })
       .then(data => {
-        chrome.tabs.sendMessage(tabId, {
-          message: 'XHR_response',
-          data: { status: resp.status, data },
-        })
-        resp = null
+        if (options.responseType === 'blob') {
+          const reader = new FileReader()
+          reader.readAsDataURL(data)
+          reader.onload = function (e) {
+            chrome.tabs.sendMessage(tabId, {
+              message: 'XHR_response',
+              data: { status: resp.status, data: e.target.result },
+            })
+            resp = null
+          }
+        } else {
+          chrome.tabs.sendMessage(tabId, {
+            message: 'XHR_response',
+            data: { status: resp.status, data },
+          })
+          resp = null
+        }
       })
       .catch(err => {
         console.log("发生错误,错误信息: " + err);

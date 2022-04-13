@@ -12,63 +12,86 @@ function callback(cb, flag) {
   }
 }
 
+/**
+ * base64  to blob二进制
+ */
+function dataURItoBlob(dataURI) {
+  var mimeString = dataURI.split(",")[0].split(":")[1].split(";")[0]; // mime类型
+  var byteString = atob(dataURI.split(",")[1]); //base64 解码
+  var arrayBuffer = new ArrayBuffer(byteString.length); //创建缓冲数组
+  var intArray = new Uint8Array(arrayBuffer); //创建视图
+
+  for (var i = 0; i < byteString.length; i++) {
+    intArray[i] = byteString.charCodeAt(i);
+  }
+  return new Blob([intArray], { type: mimeString });
+}
+
 ah.proxy({
   //请求发起前进入
   onRequest: (config, handler) => {
     console.log("发生请求,请求地址: " + config.url);
-    
+
     if (config.url.indexOf(location.origin) > -1 || /^\//.test(config.url)) {
       // 同源请求
       handler.next(config);
     } else {
-      const {xhr, ...rest} = config;
+      const { xhr, ...rest } = config;
       const obj = rest;
       obj.request = true;
       window.postMessage(obj, "*");
 
       timer = setInterval(() => {
-        callback(res => {
+        callback((res) => {
           if (res) {
             clearInterval(timer);
-            handler.next({ url: '' });
+            handler.next({ url: "" });
           }
-        })
+        });
       }, 30);
     }
   },
   //请求发生错误时进入，比如超时；注意，不包括http状态码错误，如404仍然会认为请求成功
   onError: (err, handler) => {
-    if (err && (err.config.url.indexOf(location.origin) > -1 || /^\//.test(err.config.url))) {
+    if (
+      err &&
+      (err.config.url.indexOf(location.origin) > -1 ||
+        /^\//.test(err.config.url))
+    ) {
       // 同源请求
       console.log("发生错误,错误信息: " + err.error.type);
       handler.next(err.error.type);
     } else {
-      callback(res => {
+      callback((res) => {
         if (res) {
           console.log("发生错误,错误信息: " + res);
           handler.next(res);
         }
-      }, true)
+      }, true);
     }
   },
   //请求成功后进入
   onResponse: (response, handler) => {
-    if (response && (response.config.url.indexOf(location.origin) > -1 || /^\//.test(response.config.url))) {
+    if (
+      response &&
+      (response.config.url.indexOf(location.origin) > -1 ||
+        /^\//.test(response.config.url))
+    ) {
       // 同源请求
       console.log("请求成功,反馈信息: ", response);
       handler.next(response);
     } else {
-      callback(res => {
+      callback((res) => {
         if (res) {
           console.log("请求成功,反馈信息: ", res);
           handler.next(res);
         }
-      }, true)
+      }, true);
     }
   },
 });
 
-const newFetch = fetch
+const newFetch = fetch;
 Object.defineProperty(window, "fetch", {
   configurable: true,
   enumerable: true,
@@ -79,29 +102,23 @@ Object.defineProperty(window, "fetch", {
       options.url = url;
       options.request = true;
 
-      if (options.url.indexOf(location.origin) > -1 || /^\//.test(options.url)) {
+      if (
+        options.url.indexOf(location.origin) > -1 ||
+        /^\//.test(options.url)
+      ) {
         // 同源请求
         return new Promise((resolve, reject) => {
           newFetch(url, options)
-            .then(res => {
-              const contentType = res.headers.get('content-type');
-              if (contentType.indexOf('application/json') > -1) {
-                return res.json()
-              }
-              if (options.responseType === 'blob') {
-                return res
-              }
-              return res.text()
-            })
+            .then((res) => res)
             .then(resolve)
             .catch(reject);
-        })
+        });
       } else {
         window.postMessage(options, "*");
 
         return new Promise((resolve, reject) => {
           timer = setInterval(() => {
-            callback(res => {
+            callback((res) => {
               if (res) {
                 clearInterval(timer);
 
@@ -109,18 +126,26 @@ Object.defineProperty(window, "fetch", {
                   if (res) {
                     if (flag) {
                       console.log("请求成功,反馈信息: ", res);
-                      resolve(res);
+                      resolve(new Promise(resolve => {
+                        resolve({
+                          text: () => res,
+                          json: () => res,
+                          blob: () => ({
+                            status: res.status,
+                            data: dataURItoBlob(res.data)
+                          }),
+                        })
+                      }));
                     } else {
                       console.log("发生错误,错误信息: " + res);
                       reject(res);
                     }
                   }
-                }, true)
-                
+                }, true);
               }
-            })
+            });
           }, 30);
-        })
+        });
       }
     };
   },
