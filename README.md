@@ -12,7 +12,10 @@
 > 可以支持在控制台输入尝试
 >
 ```js
-fetch('https://www.baidu.com').then(res => console.log(res)).catch(err => console.log(err))
+fetch('https://www.baidu.com')
+  .then(res => res.text())
+  .then(res => console.log(res))
+  .catch(err => console.log(err))
 ```
   
   
@@ -24,6 +27,7 @@ fetch('https://www.baidu.com', {
   },
   body: JSON.stringify({ abc: 123 })
 })
+  .then(res => res.json())
   .then(res => console.log(res))
   .catch(err => console.log(err))
 ```
