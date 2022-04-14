@@ -17,27 +17,26 @@ function injectCustomJs(jsPath, flag) {
 injectCustomJs('js/ajaxhook.min.js', true);
 
 
-
 window.addEventListener("message", function (e) {
   if (e.data.request) {
     const options = e.data
     options.message = 'XHR'
     const str = chrome.runtime.getURL('').replace('chrome-extension://', '').replace('/', '');
     chrome.runtime.sendMessage(str, options)
-
-    chrome.runtime.onMessage.addListener(function (e, sender, sendResponse) {
-      const { message, data, error } = e
-
-      if (message === 'XHR_response') {
-        window.postMessage({
-          data,
-          error,
-          response: true,
-        }, "*")
-      }
-      
-      sendResponse({ message: 'ok' })
-      return true
-    })
   }
 }, false);
+
+chrome.runtime.onMessage.addListener(function (e, sender, sendResponse) {
+  const { message, data, error } = e
+
+  if (message === 'XHR_response') {
+    window.postMessage({
+      data,
+      error,
+      response: true,
+    }, "*")
+  }
+  
+  sendResponse({ message: 'ok' })
+  return true
+})
