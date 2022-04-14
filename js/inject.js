@@ -127,14 +127,17 @@ Object.defineProperty(window, "fetch", {
                     if (flag) {
                       console.log("请求成功,反馈信息: ", res);
                       resolve(new Promise(resolve => {
-                        resolve({
-                          text: () => res,
-                          json: () => res,
-                          blob: () => ({
-                            status: res.status,
-                            data: dataURItoBlob(res.data)
-                          }),
+                        const obj = {
+                          status: res.status,
+                          data: options.responseType === 'blob' ? dataURItoBlob(res.data) : res
+                        }
+                        Object.setPrototypeOf(obj, {
+                          text: () => res.data,
+                          json: () => res.data,
+                          blob: () => dataURItoBlob(res.data),
                         })
+
+                        resolve(obj)
                       }));
                     } else {
                       console.log("发生错误,错误信息: " + res);
