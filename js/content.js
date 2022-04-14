@@ -35,6 +35,9 @@ window.addEventListener("message", function (e) {
           response: true,
         }, "*")
       }
+      
+      sendResponse({ message: 'ok' })
+      return true
     })
   }
 }, false);
