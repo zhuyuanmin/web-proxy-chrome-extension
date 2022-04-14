@@ -100,7 +100,7 @@ Object.defineProperty(window, "fetch", {
   get() {
     return (url, options = {}) => {
       console.log("发生请求,请求地址: " + (options.method || 'GET') + ' ' + url);
-      console.log("请求参数: " + JSON.stringify(options.data || options.params));
+      console.log("请求参数: " + options.body;
 
       options.url = url;
       options.request = true;
