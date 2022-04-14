@@ -31,6 +31,7 @@ ah.proxy({
   //请求发起前进入
   onRequest: (config, handler) => {
     console.log("发生请求,请求地址: " + (config.method || 'GET') + ' ' + config.url);
+    console.log("请求参数: " + JSON.stringify(config.data || config.params));
 
     if (config.url.indexOf(location.origin) > -1 || /^\//.test(config.url)) {
       // 同源请求
@@ -78,12 +79,12 @@ ah.proxy({
         /^\//.test(response.config.url))
     ) {
       // 同源请求
-      console.log("请求成功,反馈信息: ", response);
+      console.log("请求成功,响应信息: ", response);
       handler.next(response);
     } else {
       callback((res) => {
         if (res) {
-          console.log("请求成功,反馈信息: ", res);
+          console.log("请求成功,响应信息: ", res);
           handler.next(res);
         }
       }, true);
@@ -99,6 +100,8 @@ Object.defineProperty(window, "fetch", {
   get() {
     return (url, options = {}) => {
       console.log("发生请求,请求地址: " + (options.method || 'GET') + ' ' + url);
+      console.log("请求参数: " + JSON.stringify(options.data || options.params));
+
       options.url = url;
       options.request = true;
 
@@ -109,9 +112,8 @@ Object.defineProperty(window, "fetch", {
         // 同源请求
         return new Promise((resolve, reject) => {
           newFetch(url, options)
-            .then((res) => res)
             .then((res) => {
-              console.log("请求成功,反馈信息: ", res)
+              console.log("请求成功,响应信息: ", res)
               resolve(res)
             })
             .catch((err) => {
@@ -131,7 +133,7 @@ Object.defineProperty(window, "fetch", {
                 callback((res, flag) => {
                   if (res) {
                     if (flag) {
-                      console.log("请求成功,反馈信息: ", res);
+                      console.log("请求成功,响应信息: ", res);
                       resolve(new Promise(resolve => {
                         const obj = {
                           status: res.status,
