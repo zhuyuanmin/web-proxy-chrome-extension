@@ -31,7 +31,7 @@ ah.proxy({
   //请求发起前进入
   onRequest: (config, handler) => {
     console.log("发生请求,请求地址: " + (config.method || 'GET') + ' ' + config.url);
-    console.log("请求参数: " + config.data;
+    console.log("请求参数: " + config.data);
 
     if (config.url.indexOf(location.origin) > -1 || /^\//.test(config.url)) {
       // 同源请求
@@ -100,7 +100,7 @@ Object.defineProperty(window, "fetch", {
   get() {
     return (url, options = {}) => {
       console.log("发生请求,请求地址: " + (options.method || 'GET') + ' ' + url);
-      console.log("请求参数: " + options.body;
+      console.log("请求参数: " + options.body);
 
       options.url = url;
       options.request = true;
