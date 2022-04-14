@@ -45,7 +45,7 @@ ah.proxy({
         callback((res) => {
           if (res) {
             clearInterval(timer);
-            handler.next({ url: "" });
+            handler.next({ url: "", body: null, method: "GET" });
           }
         });
       }, 30);
