@@ -38,7 +38,6 @@ chrome.runtime.onMessage.addListener(function (e, sender) {
         }
       })
       .catch(err => {
-        console.log("发生错误,错误信息: " + err);
         chrome.tabs.sendMessage(tabId, {
           message: 'XHR_response',
           error: err.toString()

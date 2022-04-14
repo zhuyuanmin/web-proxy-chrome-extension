@@ -30,7 +30,7 @@ function dataURItoBlob(dataURI) {
 ah.proxy({
   //请求发起前进入
   onRequest: (config, handler) => {
-    console.log("发生请求,请求地址: " + config.url);
+    console.log("发生请求,请求地址: " + (config.method || 'GET') + ' ' + config.url);
 
     if (config.url.indexOf(location.origin) > -1 || /^\//.test(config.url)) {
       // 同源请求
@@ -98,7 +98,7 @@ Object.defineProperty(window, "fetch", {
   // writable: true,
   get() {
     return (url, options = {}) => {
-      console.log("发生请求,请求地址: " + url);
+      console.log("发生请求,请求地址: " + (options.method || 'GET') + ' ' + url);
       options.url = url;
       options.request = true;
 
@@ -110,8 +110,14 @@ Object.defineProperty(window, "fetch", {
         return new Promise((resolve, reject) => {
           newFetch(url, options)
             .then((res) => res)
-            .then(resolve)
-            .catch(reject);
+            .then((res) => {
+              console.log("请求成功,反馈信息: ", res)
+              resolve(res)
+            })
+            .catch((err) => {
+              console.log("发生错误,错误信息: " + err)
+              reject(err)
+            });
         });
       } else {
         window.postMessage(options, "*");
