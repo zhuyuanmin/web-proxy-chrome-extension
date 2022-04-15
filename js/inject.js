@@ -36,7 +36,7 @@ ah.proxy({
         " " +
         config.url
     );
-    console.log("请求参数: " + config.data);
+    console.log("请求参数: " + (config.data || config.body));
 
     if (config.url.indexOf(location.origin) > -1 || /^\//.test(config.url)) {
       // 同源请求
