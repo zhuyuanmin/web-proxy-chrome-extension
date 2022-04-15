@@ -43,53 +43,33 @@ ah.proxy({
       const obj = rest;
       obj.request = true;
       window.postMessage(obj, "*");
-
-      timer = setInterval(() => {
-        callback((res) => {
-          if (res) {
-            clearInterval(timer);
-            handler.next({ url: "/", body: null, method: "GET" });
-          }
-        });
-      }, 30);
+      handler.next(Object.assign(config, { url: "/@customer/url/xxx@", body: null, method: "GET" }));
     }
   },
   //请求发生错误时进入，比如超时；注意，不包括http状态码错误，如404仍然会认为请求成功
   onError: (err, handler) => {
-    if (
-      err &&
-      (err.config.url.indexOf(location.origin) > -1 ||
-        /^\//.test(err.config.url))
-    ) {
-      // 同源请求
-      console.log("发生错误,错误信息: " + err.error.type);
-      handler.next(err.error.type);
-    } else {
-      callback((res) => {
-        if (res) {
-          console.log("发生错误,错误信息: " + res);
-          handler.next(res);
-        }
-      }, true);
-    }
+    console.log("发生错误,错误信息: " + err.error.type);
+    handler.next(err.error.type);
   },
   //请求成功后进入
   onResponse: (response, handler) => {
-    if (
-      response &&
-      (response.config.url.indexOf(location.origin) > -1 ||
-        /^\//.test(response.config.url))
-    ) {
-      // 同源请求
+    if (response.config.url === '/@customer/url/xxx@') {
+      timer = setInterval(() => {
+        callback((res, flag) => {
+          if (res) {
+            clearInterval(timer);
+            if (flag) {
+              console.log("请求成功,响应信息: ", res);
+              handler.next(res);
+            } else {
+              console.log("自定义发生错误,错误信息: " + res);
+            }
+          }
+        }, true);
+      }, 30);
+    } else {
       console.log("请求成功,响应信息: ", response);
       handler.next(response);
-    } else {
-      callback((res) => {
-        if (res) {
-          console.log("请求成功,响应信息: ", res);
-          handler.next(res);
-        }
-      }, true);
     }
   },
 });
@@ -130,40 +110,35 @@ Object.defineProperty(window, "fetch", {
 
         return new Promise((resolve, reject) => {
           timer = setInterval(() => {
-            callback((res) => {
+            callback((res, flag) => {
               if (res) {
                 clearInterval(timer);
+                if (flag) {
+                  console.log("请求成功,响应信息: ", res);
+                  resolve(
+                    new Promise((resolve) => {
+                      const obj = {
+                        status: res.status,
+                        data:
+                          options.responseType === "blob"
+                            ? dataURItoBlob(res.data)
+                            : res.data,
+                      };
+                      Object.setPrototypeOf(obj, {
+                        text: () => res.data,
+                        json: () => res.data,
+                        blob: () => dataURItoBlob(res.data),
+                      });
 
-                callback((res, flag) => {
-                  if (res) {
-                    if (flag) {
-                      console.log("请求成功,响应信息: ", res);
-                      resolve(
-                        new Promise((resolve) => {
-                          const obj = {
-                            status: res.status,
-                            data:
-                              options.responseType === "blob"
-                                ? dataURItoBlob(res.data)
-                                : res.data,
-                          };
-                          Object.setPrototypeOf(obj, {
-                            text: () => res.data,
-                            json: () => res.data,
-                            blob: () => dataURItoBlob(res.data),
-                          });
-
-                          resolve(obj);
-                        })
-                      );
-                    } else {
-                      console.log("发生错误,错误信息: " + res);
-                      reject(res);
-                    }
-                  }
-                }, true);
+                      resolve(obj);
+                    })
+                  );
+                } else {
+                  console.log("发生错误,错误信息: " + res);
+                  reject(res);
+                }
               }
-            });
+            }, true);
           }, 30);
         });
       }

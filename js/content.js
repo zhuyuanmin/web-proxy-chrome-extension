@@ -21,8 +21,7 @@ window.addEventListener("message", function (e) {
   if (e.data.request) {
     const options = e.data
     options.message = 'XHR'
-    const str = chrome.runtime.getURL('').replace('chrome-extension://', '').replace('/', '');
-    chrome.runtime.sendMessage(str, options)
+    chrome.runtime.sendMessage(chrome.runtime.id, options)
   }
 }, false);
 
