@@ -36,7 +36,7 @@ ah.proxy({
         " " +
         config.url
     );
-    console.log("请求参数: " + (config.data || config.body));
+    console.log("请求参数: ", config.data || config.body);
 
     if (config.url.indexOf(location.origin) > -1 || /^\//.test(config.url)) {
       // 同源请求
@@ -75,7 +75,7 @@ ah.proxy({
                 console.log("请求成功,响应信息: ", res);
                 handler.next(res);
               } else {
-                console.log("自定义发生错误,错误信息: " + res);
+                console.log("发生错误,错误信息: " + res);
               }
             }, true);
           }
@@ -101,7 +101,7 @@ Object.defineProperty(window, "fetch", {
           " " +
           url
       );
-      console.log("请求参数: " + options.body);
+      console.log("请求参数: ", options.body);
 
       options.url = url;
       options.request = true;
