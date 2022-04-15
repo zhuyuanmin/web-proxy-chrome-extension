@@ -31,7 +31,10 @@ ah.proxy({
   //请求发起前进入
   onRequest: (config, handler) => {
     console.log(
-      "发生请求,请求地址: " + ((config.method || "GET").toUpperCase()) + " " + config.url
+      "发生请求,请求地址: " +
+        (config.method || "GET").toUpperCase() +
+        " " +
+        config.url
     );
     console.log("请求参数: " + config.data);
 
@@ -43,7 +46,13 @@ ah.proxy({
       const obj = rest;
       obj.request = true;
       window.postMessage(obj, "*");
-      handler.next(Object.assign(config, { url: "/@customer/url/xxx@", body: null, method: "GET" }));
+      handler.next(
+        Object.assign(config, {
+          url: "/@customer/url/xxx@",
+          body: null,
+          method: "GET",
+        })
+      );
     }
   },
   //请求发生错误时进入，比如超时；注意，不包括http状态码错误，如404仍然会认为请求成功
@@ -53,19 +62,22 @@ ah.proxy({
   },
   //请求成功后进入
   onResponse: (response, handler) => {
-    if (response.config.url === '/@customer/url/xxx@') {
+    if (response.config.url === "/@customer/url/xxx@") {
       timer = setInterval(() => {
-        callback((res, flag) => {
+        callback((res) => {
           if (res) {
             clearInterval(timer);
-            if (flag) {
-              console.log("请求成功,响应信息: ", res);
-              handler.next(res);
-            } else {
-              console.log("自定义发生错误,错误信息: " + res);
-            }
+
+            callback((res, flag) => {
+              if (flag) {
+                console.log("请求成功,响应信息: ", res);
+                handler.next(res);
+              } else {
+                console.log("自定义发生错误,错误信息: " + res);
+              }
+            }, true);
           }
-        }, true);
+        });
       }, 30);
     } else {
       console.log("请求成功,响应信息: ", response);
@@ -82,7 +94,10 @@ Object.defineProperty(window, "fetch", {
   get() {
     return (url, options = {}) => {
       console.log(
-        "发生请求,请求地址: " + ((options.method || "GET").toUpperCase()) + " " + url
+        "发生请求,请求地址: " +
+          (options.method || "GET").toUpperCase() +
+          " " +
+          url
       );
       console.log("请求参数: " + options.body);
 
@@ -110,35 +125,38 @@ Object.defineProperty(window, "fetch", {
 
         return new Promise((resolve, reject) => {
           timer = setInterval(() => {
-            callback((res, flag) => {
+            callback((res) => {
               if (res) {
                 clearInterval(timer);
-                if (flag) {
-                  console.log("请求成功,响应信息: ", res);
-                  resolve(
-                    new Promise((resolve) => {
-                      const obj = {
-                        status: res.status,
-                        data:
-                          options.responseType === "blob"
-                            ? dataURItoBlob(res.data)
-                            : res.data,
-                      };
-                      Object.setPrototypeOf(obj, {
-                        text: () => res.data,
-                        json: () => res.data,
-                        blob: () => dataURItoBlob(res.data),
-                      });
 
-                      resolve(obj);
-                    })
-                  );
-                } else {
-                  console.log("发生错误,错误信息: " + res);
-                  reject(res);
-                }
+                callback((res, flag) => {
+                  if (flag) {
+                    console.log("请求成功,响应信息: ", res);
+                    resolve(
+                      new Promise((resolve) => {
+                        const obj = {
+                          status: res.status,
+                          data:
+                            options.responseType === "blob"
+                              ? dataURItoBlob(res.data)
+                              : res.data,
+                        };
+                        Object.setPrototypeOf(obj, {
+                          text: () => res.data,
+                          json: () => res.data,
+                          blob: () => dataURItoBlob(res.data),
+                        });
+
+                        resolve(obj);
+                      })
+                    );
+                  } else {
+                    console.log("发生错误,错误信息: " + res);
+                    reject(res);
+                  }
+                }, true);
               }
-            }, true);
+            });
           }, 30);
         });
       }
