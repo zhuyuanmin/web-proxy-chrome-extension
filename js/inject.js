@@ -45,7 +45,9 @@ ah.proxy({
       const { xhr, ...rest } = config;
       const obj = rest;
       obj.request = true;
-      window.postMessage(obj, "*");
+      // 剔除不能传递的数据
+      window.postMessage(JSON.parse(JSON.stringify(obj)), "*");
+
       handler.next(
         Object.assign(config, {
           url: "/@customer/url/xxx@",
@@ -121,7 +123,8 @@ Object.defineProperty(window, "fetch", {
             });
         });
       } else {
-        window.postMessage(options, "*");
+        // 剔除不能传递的数据
+        window.postMessage(JSON.parse(JSON.stringify(options)), "*");
 
         return new Promise((resolve, reject) => {
           timer = setInterval(() => {
