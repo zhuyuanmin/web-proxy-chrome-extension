@@ -30,7 +30,9 @@ function dataURItoBlob(dataURI) {
 ah.proxy({
   //请求发起前进入
   onRequest: (config, handler) => {
-    console.log("发生请求,请求地址: " + (config.method || 'GET') + ' ' + config.url);
+    console.log(
+      "发生请求,请求地址: " + ((config.method || "GET").toUpperCase()) + " " + config.url
+    );
     console.log("请求参数: " + config.data);
 
     if (config.url.indexOf(location.origin) > -1 || /^\//.test(config.url)) {
@@ -46,7 +48,7 @@ ah.proxy({
         callback((res) => {
           if (res) {
             clearInterval(timer);
-            handler.next({ url: "", body: null, method: "GET" });
+            handler.next({ url: "/", body: null, method: "GET" });
           }
         });
       }, 30);
@@ -99,7 +101,9 @@ Object.defineProperty(window, "fetch", {
   // writable: true,
   get() {
     return (url, options = {}) => {
-      console.log("发生请求,请求地址: " + (options.method || 'GET') + ' ' + url);
+      console.log(
+        "发生请求,请求地址: " + ((options.method || "GET").toUpperCase()) + " " + url
+      );
       console.log("请求参数: " + options.body);
 
       options.url = url;
@@ -113,12 +117,12 @@ Object.defineProperty(window, "fetch", {
         return new Promise((resolve, reject) => {
           newFetch(url, options)
             .then((res) => {
-              console.log("请求成功,响应信息: ", res)
-              resolve(res)
+              console.log("请求成功,响应信息: ", res);
+              resolve(res);
             })
             .catch((err) => {
-              console.log("发生错误,错误信息: " + err)
-              reject(err)
+              console.log("发生错误,错误信息: " + err);
+              reject(err);
             });
         });
       } else {
@@ -134,19 +138,24 @@ Object.defineProperty(window, "fetch", {
                   if (res) {
                     if (flag) {
                       console.log("请求成功,响应信息: ", res);
-                      resolve(new Promise(resolve => {
-                        const obj = {
-                          status: res.status,
-                          data: options.responseType === 'blob' ? dataURItoBlob(res.data) : res
-                        }
-                        Object.setPrototypeOf(obj, {
-                          text: () => res.data,
-                          json: () => res.data,
-                          blob: () => dataURItoBlob(res.data),
-                        })
+                      resolve(
+                        new Promise((resolve) => {
+                          const obj = {
+                            status: res.status,
+                            data:
+                              options.responseType === "blob"
+                                ? dataURItoBlob(res.data)
+                                : res.data,
+                          };
+                          Object.setPrototypeOf(obj, {
+                            text: () => res.data,
+                            json: () => res.data,
+                            blob: () => dataURItoBlob(res.data),
+                          });
 
-                        resolve(obj)
-                      }));
+                          resolve(obj);
+                        })
+                      );
                     } else {
                       console.log("发生错误,错误信息: " + res);
                       reject(res);
