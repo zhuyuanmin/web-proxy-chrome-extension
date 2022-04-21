@@ -85,7 +85,7 @@ ah.proxy({
       // 剔除不能传递的数据
       window.postMessage(JSON.parse(JSON.stringify(obj)), "*");
 
-      xhr.open('get', '/@custom/url/xxx@')
+      xhr.open('get', '/')
       xhr.send()
     }
   },
