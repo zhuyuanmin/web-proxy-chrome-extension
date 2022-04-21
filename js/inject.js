@@ -81,16 +81,12 @@ ah.proxy({
       const { xhr, ...rest } = config;
       const obj = rest;
       obj.request = true;
+      obj.responseType = xhr.responseType
       // 剔除不能传递的数据
       window.postMessage(JSON.parse(JSON.stringify(obj)), "*");
 
-      handler.next(
-        Object.assign(config, {
-          url: "/@customer/url/xxx@",
-          body: null,
-          method: "GET",
-        })
-      );
+      xhr.open('get', '/@customer/url/xxx@')
+      xhr.send()
     }
   },
   //请求发生错误时进入，比如超时；注意，不包括http状态码错误，如404仍然会认为请求成功
@@ -109,9 +105,9 @@ ah.proxy({
             callback((res, flag) => {
               if (flag) {
                 console.log("请求成功,响应信息: ", res);
-                if (response.config.responseType === "blob") {
+                if (response.config.xhr.responseType === "blob") {
                   handler.next({
-                    status: res.options.status,
+                    status: res.config.status,
                     data: dataURItoBlob(res.data),
                   });
                 } else {
@@ -191,7 +187,7 @@ Object.defineProperty(window, "fetch", {
                             return;
                           },
                         }),
-                        res.options
+                        res.config
                       )
                     );
                   } else {

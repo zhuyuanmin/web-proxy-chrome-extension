@@ -26,7 +26,8 @@ chrome.runtime.onMessage.addListener(function (e, sender) {
             chrome.tabs.sendMessage(tabId, {
               message: 'XHR_response',
               data: {
-                options: {
+                config: {
+                  url,
                   status: resp.status,
                   statusText: resp.statusText,
                   headers: JSON.parse(JSON.stringify(resp.headers)),
@@ -40,7 +41,8 @@ chrome.runtime.onMessage.addListener(function (e, sender) {
           chrome.tabs.sendMessage(tabId, {
             message: 'XHR_response',
             data: {
-              options: {
+              config: {
+                url,
                 status: resp.status,
                 statusText: resp.statusText,
                 headers: JSON.parse(JSON.stringify(resp.headers)),
