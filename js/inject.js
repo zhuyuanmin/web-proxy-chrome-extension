@@ -109,7 +109,14 @@ ah.proxy({
             callback((res, flag) => {
               if (flag) {
                 console.log("请求成功,响应信息: ", res);
-                handler.next(res);
+                if (response.config.responseType === "blob") {
+                  handler.next({
+                    status: res.options.status,
+                    data: dataURItoBlob(res.data),
+                  });
+                } else {
+                  handler.next(res);
+                }
               } else {
                 console.log("发生错误,错误信息: " + res);
               }
