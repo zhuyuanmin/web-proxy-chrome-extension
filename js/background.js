@@ -25,14 +25,28 @@ chrome.runtime.onMessage.addListener(function (e, sender) {
           reader.onload = function (e) {
             chrome.tabs.sendMessage(tabId, {
               message: 'XHR_response',
-              data: { status: resp.status, data: e.target.result },
+              data: {
+                options: {
+                  status: resp.status,
+                  statusText: resp.statusText,
+                  headers: JSON.parse(JSON.stringify(resp.headers)),
+                },
+                data: e.target.result
+              },
             })
             resp = null
           }
         } else {
           chrome.tabs.sendMessage(tabId, {
             message: 'XHR_response',
-            data: { status: resp.status, data },
+            data: {
+              options: {
+                status: resp.status,
+                statusText: resp.statusText,
+                headers: JSON.parse(JSON.stringify(resp.headers)),
+              },
+              data
+            },
           })
           resp = null
         }

@@ -13,18 +13,54 @@ function callback(cb, flag) {
 }
 
 /**
+ * base64  to Uint8Array
+ */
+function dataURItoUnit8Array(dataURI) {
+  var mimeString = dataURI.split(",")[0].split(":")[1].split(";")[0]; // mime类型
+  var byteString = atob(dataURI.split(",")[1]); //base64 解码
+  var arrayBuffer = new ArrayBuffer(byteString.length); //创建缓冲数组
+  var intArray = new Uint8Array(arrayBuffer);
+
+  for (var i = 0; i < byteString.length; i++) {
+    intArray[i] = byteString.charCodeAt(i);
+  }
+  return intArray;
+}
+
+/**
  * base64  to blob二进制
  */
 function dataURItoBlob(dataURI) {
   var mimeString = dataURI.split(",")[0].split(":")[1].split(";")[0]; // mime类型
   var byteString = atob(dataURI.split(",")[1]); //base64 解码
   var arrayBuffer = new ArrayBuffer(byteString.length); //创建缓冲数组
-  var intArray = new Uint8Array(arrayBuffer); //创建视图
+  var intArray = new Uint8Array(arrayBuffer);
 
   for (var i = 0; i < byteString.length; i++) {
     intArray[i] = byteString.charCodeAt(i);
   }
   return new Blob([intArray], { type: mimeString });
+}
+
+/**
+ * str to unit8array
+ */
+function toUint8Arr(str) {
+  const buffer = [];
+  for (let i of str) {
+    const _code = i.charCodeAt(0);
+    if (_code < 0x80) {
+      buffer.push(_code);
+    } else if (_code < 0x800) {
+      buffer.push(0xc0 + (_code >> 6));
+      buffer.push(0x80 + (_code & 0x3f));
+    } else if (_code < 0x10000) {
+      buffer.push(0xe0 + (_code >> 12));
+      buffer.push(0x80 + ((_code >> 6) & 0x3f));
+      buffer.push(0x80 + (_code & 0x3f));
+    }
+  }
+  return new Uint8Array(buffer);
 }
 
 ah.proxy({
@@ -136,22 +172,20 @@ Object.defineProperty(window, "fetch", {
                   if (flag) {
                     console.log("请求成功,响应信息: ", res);
                     resolve(
-                      new Promise((resolve) => {
-                        const obj = {
-                          status: res.status,
-                          data:
-                            options.responseType === "blob"
-                              ? dataURItoBlob(res.data)
-                              : res.data,
-                        };
-                        Object.setPrototypeOf(obj, {
-                          text: () => res.data,
-                          json: () => res.data,
-                          blob: () => dataURItoBlob(res.data),
-                        });
-
-                        resolve(obj);
-                      })
+                      new Response(
+                        new ReadableStream({
+                          start(controller) {
+                            if (options.responseType === "blob") {
+                              controller.enqueue(dataURItoUnit8Array(res.data));
+                            } else {
+                              controller.enqueue(toUint8Arr(JSON.stringify(res.data)));
+                            }
+                            controller.close();
+                            return;
+                          },
+                        }),
+                        res.options
+                      )
                     );
                   } else {
                     console.log("发生错误,错误信息: " + res);
