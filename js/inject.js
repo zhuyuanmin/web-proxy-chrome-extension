@@ -85,7 +85,7 @@ ah.proxy({
       // 剔除不能传递的数据
       window.postMessage(JSON.parse(JSON.stringify(obj)), "*");
 
-      xhr.open('get', '/@customer/url/xxx@')
+      xhr.open('get', '/@custom/url/xxx@')
       xhr.send()
     }
   },
@@ -96,7 +96,11 @@ ah.proxy({
   },
   //请求成功后进入
   onResponse: (response, handler) => {
-    if (response.config.url === "/@customer/url/xxx@") {
+    if (response.config.url.indexOf(location.origin) > -1 || /^\//.test(response.config.url)) {
+      // 同源请求
+      console.log("请求成功,响应信息: ", response);
+      handler.next(response);
+    } else {
       timer = setInterval(() => {
         callback((res) => {
           if (res) {
@@ -106,12 +110,11 @@ ah.proxy({
               if (flag) {
                 console.log("请求成功,响应信息: ", res);
                 if (response.config.xhr.responseType === "blob") {
-                  handler.next({
-                    status: res.config.status,
-                    data: dataURItoBlob(res.data),
-                  });
+                  response.response = dataURItoBlob(res.data)
+                  handler.next(response);
                 } else {
-                  handler.next(res);
+                  response.response = res.data
+                  handler.next(response);
                 }
               } else {
                 console.log("发生错误,错误信息: " + res);
@@ -120,9 +123,6 @@ ah.proxy({
           }
         });
       }, 30);
-    } else {
-      console.log("请求成功,响应信息: ", response);
-      handler.next(response);
     }
   },
 });
