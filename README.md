@@ -12,6 +12,7 @@
 > 可以支持在控制台输入尝试
 >
 ```js
+// fetch 请求
 fetch('https://www.baidu.com')
   .then(res => res.text())
   .then(res => console.log(res))
@@ -20,20 +21,23 @@ fetch('https://www.baidu.com')
   
   
 ```js
-fetch('https://www.baidu.com', {
-  method: 'post',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({ abc: 123 })
-})
-  .then(res => res.json())
-  .then(res => console.log(res))
-  .catch(err => console.log(err))
+// xhr 请求
+const xhr = new XMLHttpRequest();
+xhr.open(
+  "get",
+  "https://dev-crm.pintarplatformdigital.com/api/admin/portal/getCode"
+);
+xhr.responseType = "blob";
+xhr.send();
+xhr.onreadystatechange = () => {
+  if (xhr.readyState === 4 && xhr.status === 200) {
+    console.log(xhr.response);
+  }
+};
 ```
 
 ```js
-// 需安装 axios
+// axios 三方库请求
 axios.post('https://www.baidu.com', {
   method: 'post',
   headers: {},
