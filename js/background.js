@@ -6,7 +6,7 @@ chrome.runtime.onMessage.addListener(function (e, sender) {
   
   if (message === 'XHR') {
     let resp = null
-    fetch(url, options)
+    fetch(url, { ...options, mode: 'no-cors' })
       .then(res => {
         resp = res
         const contentType = res.headers.get('content-type') || '';
