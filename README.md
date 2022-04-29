@@ -51,3 +51,6 @@ axios.post('https://www.baidu.com', {
 
 # 博文及实现原理分享
 详见 [>>> 掘金](https://juejin.cn/post/7085531817024946213/)
+
+# Chrome 插件开发文档
+[Chrome V3 manifest] <https://developer.chrome.com/docs/extensions/mv3/manifest>
