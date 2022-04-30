@@ -1,21 +1,23 @@
 console.log('content.js has loaded!');
 
 function injectCustomJs(jsPath, flag) {
-  const temp = document.createElement("script");
-  temp.setAttribute("type", "text/javascript");
-  temp.src = chrome.runtime.getURL(jsPath);
-
-  document.head.appendChild(temp);
+  const temp = document.createElement("script")
+  temp.setAttribute("type", "text/javascript")
+  temp.src = chrome.runtime.getURL(jsPath)
+  document.head.appendChild(temp)
 
   if (flag) {
     temp.onload = function () {
-      injectCustomJs('js/inject.js');
+      injectCustomJs('js/inject.js')
     }
   }
 }
 
-injectCustomJs('js/ajaxhook.min.js', true);
-
+chrome.storage.local.get(['g-switch'],  function (result) {
+  if (result['g-switch']) {
+    injectCustomJs('js/ajaxhook.min.js', true)
+  }
+})
 
 window.addEventListener("message", function (e) {
   if (e.data.request) {
@@ -23,11 +25,18 @@ window.addEventListener("message", function (e) {
     options.message = 'XHR'
     chrome.runtime.sendMessage(chrome.runtime.id, options)
   }
-}, false);
+}, false)
+
+document.addEventListener("visibilitychange", function() {
+  if (!document.hidden) {
+    window.location.reload()
+  }
+});
 
 chrome.runtime.onMessage.addListener(function (e, sender, sendResponse) {
   const { message, data, error } = e
 
+  // 来自 background.js 的消息
   if (message === 'XHR_response') {
     window.postMessage({
       data,
@@ -35,7 +44,12 @@ chrome.runtime.onMessage.addListener(function (e, sender, sendResponse) {
       response: true,
     }, "*")
   }
-  
+
+  // 来自 popup.js 的消息
+  if (message === 'Switch_change') {
+    window.location.reload()
+  }
+
   sendResponse({ message: 'ok' })
   return true
 })

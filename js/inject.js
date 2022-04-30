@@ -1,4 +1,5 @@
 console.log("inject.js has loaded!");
+
 let respOk = null;
 let respErr = null;
 let timer = null;

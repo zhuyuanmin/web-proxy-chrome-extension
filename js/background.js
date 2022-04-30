@@ -3,13 +3,13 @@ console.log('background.js has loaded!');
 chrome.runtime.onMessage.addListener(function (e, sender) {
   const { message, request, url, ...options } = e
   const tabId = sender.tab.id
-  
+
   if (message === 'XHR') {
     let resp = null
     fetch(url, { ...options, mode: 'cors' })
       .then(res => {
         resp = res
-        const contentType = res.headers.get('content-type') || '';
+        const contentType = res.headers.get('content-type') || ''
         if (contentType.indexOf('application/json') > -1) {
           return res.json()
         }

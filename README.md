@@ -18,8 +18,7 @@ fetch('https://www.baidu.com')
   .then(res => console.log(res))
   .catch(err => console.log(err))
 ```
-  
-  
+
 ```js
 // xhr 请求
 const xhr = new XMLHttpRequest();
