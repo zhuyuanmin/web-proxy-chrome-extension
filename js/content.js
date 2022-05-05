@@ -13,9 +13,17 @@ function injectCustomJs(jsPath, flag) {
   }
 }
 
-chrome.storage.local.get(['g-switch'],  function (result) {
+chrome.storage.local.get(['g-switch', 'active-switch'],  function (result) {
   if (result['g-switch']) {
     injectCustomJs('js/ajaxhook.min.js', true)
+  }
+
+  if (result['active-switch']) {
+    document.addEventListener("visibilitychange", function() {
+      if (!document.hidden) {
+        window.location.reload()
+      }
+    });
   }
 })
 
@@ -26,12 +34,6 @@ window.addEventListener("message", function (e) {
     chrome.runtime.sendMessage(chrome.runtime.id, options)
   }
 }, false)
-
-document.addEventListener("visibilitychange", function() {
-  if (!document.hidden) {
-    window.location.reload()
-  }
-});
 
 chrome.runtime.onMessage.addListener(function (e, sender, sendResponse) {
   const { message, data, error } = e

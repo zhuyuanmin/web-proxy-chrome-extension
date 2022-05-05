@@ -7,17 +7,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     .container {
-      width: 150px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
+      width: 165px;
     }
 
-    .container div:first-child {
+    .container>div {
+      display: flex;
+      align-items: center;
       margin-bottom: 10px;
     }
 
-    .g-switch {
+    .g-switch, .active-switch {
       display: inline-block;
       align-items: center;
       position: relative;
@@ -31,11 +30,20 @@
       background-color: #409eff;
     }
 
+    .active-switch.is-checked .g-switch_core {
+      border-color: #409eff;
+      background-color: #409eff;
+    }
+
     .g-switch.is-checked .g-switch_core .g-switch_button {
       transform: translateX(20px);
     }
 
-    .g-switch .g-switch_core {
+    .active-switch.is-checked .g-switch_core .g-switch_button {
+      transform: translateX(20px);
+    }
+
+    .g-switch .g-switch_core, .active-switch .g-switch_core {
       margin: 0;
       display: inline-block;
       position: relative;
@@ -74,6 +82,14 @@
     <div>
       <label>网络代理：</label>
       <div class="g-switch">
+        <span class="g-switch_core">
+          <span class="g-switch_button"></span>
+        </span>
+      </div>
+    </div>
+    <div>
+      <label>页签激活后自动刷新：</label>
+      <div class="active-switch">
         <span class="g-switch_core">
           <span class="g-switch_button"></span>
         </span>
