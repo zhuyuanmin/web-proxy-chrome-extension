@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "Proxy",
+  "version": "1.0.4",
+  "description": "一款支持跨域的Chrome扩展插件",
+  "icons": {
+    "16": "img/icon.png",
+    "48": "img/icon.png",
+    "128": "img/icon.png"
+  },
+  "background": {
+    "service_worker": "js/background.js"
+  },
+  "homepage_url": "https://github.com/zhuyuanmin/web-proxy-chrome-extension",
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "js/content.js"
+      ]
+    }
+  ],
+  "permissions": [
+    "webRequest",
+    "storage"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "js/ajaxhook.min.js",
+        "js/inject.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
+  "action": {
+    "default_icon": "img/icon.png",
+    "default_title": "一款支持跨域的Chrome扩展插件",
+    "default_popup": "popup.html"
+  }
+}
