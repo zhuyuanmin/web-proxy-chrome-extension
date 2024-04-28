@@ -1,6 +1,8 @@
 # web-proxy-chrome-extension
 一款支持跨域的Chrome扩展插件
 
+# 油猴脚本，查看 `userscript.js`
+
 # 特色
 
 * 无侵害，不需要修改任何业务代码
