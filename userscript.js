@@ -19,9 +19,6 @@ function proxyRequest(url, options) {
         ? JSON.stringify(options.data)
         : options.data,
     onload(response) {
-      if (url.endsWith("queryInstalledMaterial")) {
-        console.log(url, options)
-      }
       window.dispatchEvent(new CustomEvent('response-result', { detail: { url, data: response } }));
     },
     onerror(error) {
