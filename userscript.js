@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         Access Proxy Request resolution Cors
+// @name         跨域请求脚本
 // @namespace    http://tampermonkey.net/
 // @version      2024-04-28
 // @description  try to take over the world!
-// @author       You
+// @author       zym
 // @match        *://**/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_download
@@ -145,11 +145,11 @@ window.addEventListener("access-request", (e) => {
         } else {
           const { xhr, ...rest } = config;
           const obj = rest;
-          obj.request = true;
           obj.responseType = xhr.responseType;
+          obj.data = obj.body;
 
           window.dispatchEvent(new CustomEvent('access-request', { detail: { url: config.url, options: obj } }));
-          xhr.open(config.method, \`$\{config.url.replace(/^https?:\\/\\/.*?\\//, "")}\`);
+          xhr.open('get', '/');
           xhr.send();
         }
       },
@@ -167,15 +167,15 @@ window.addEventListener("access-request", (e) => {
           callback((res, flag) => {
             if (flag) {
               console.log("请求成功,响应信息: ", res);
+              response.status = 200;
               if (response.config.xhr.responseType === "blob") {
                 response.response = dataURItoBlob(res.data);
-                response.status = 200;
-                handler.next(response);
+              } else if (response.config.xhr.responseType === "json") {
+                response.response = JSON.parse(res.data);
               } else {
                 response.response = res.data;
-                response.status = 200;
-                handler.next(response);
               }
+              handler.next(response);
             } else {
               console.log("发生错误,错误信息: ", res);
             }
@@ -201,7 +201,6 @@ window.addEventListener("access-request", (e) => {
           console.log("请求参数: ", options.body);
 
           options.url = url;
-          options.request = true;
           options.data = options.body;
 
           if (
