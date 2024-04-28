@@ -7,7 +7,6 @@
 // @match        *://**/*
 // @connect      *
 // @grant        GM_xmlhttpRequest
-// @grant        GM_download
 // ==/UserScript==
 
 function proxyRequest(url, options) {
