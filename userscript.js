@@ -2,9 +2,10 @@
 // @name         跨域请求脚本
 // @namespace    http://tampermonkey.net/
 // @version      2024-04-28
-// @description  try to take over the world!
+// @description  Proxy request to pass cors!
 // @author       zym
 // @match        *://**/*
+// @connect      *
 // @grant        GM_xmlhttpRequest
 // @grant        GM_download
 // ==/UserScript==
