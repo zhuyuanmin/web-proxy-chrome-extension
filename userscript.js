@@ -19,11 +19,15 @@ function proxyRequest(url, options) {
         ? JSON.stringify(options.data)
         : options.data,
     onload(response) {
-      window.dispatchEvent(new CustomEvent('response-result', { detail: { url, data: response } }));
+      window.dispatchEvent(
+        new CustomEvent("response-result", { detail: { url, data: response } })
+      );
     },
     onerror(error) {
       console.error(error);
-      window.dispatchEvent(new CustomEvent('response-result', { detail: { url, error } }));
+      window.dispatchEvent(
+        new CustomEvent("response-result", { detail: { url, error } })
+      );
     },
   });
 }
