@@ -6,7 +6,7 @@ chrome.runtime.onMessage.addListener(function (e, sender) {
 
   if (message === 'XHR') {
     let resp = null
-    fetch(url, { ...options, mode: 'cors' })
+    fetch(url, { ...options, mode: 'cors', credentials: 'include' })
       .then(res => {
         resp = res
         const contentType = res.headers.get('content-type') || ''
@@ -56,6 +56,11 @@ chrome.runtime.onMessage.addListener(function (e, sender) {
       .catch(err => {
         chrome.tabs.sendMessage(tabId, {
           message: 'XHR_response',
+          data: {
+            config: {
+              url
+            }
+          },
           error: err.toString()
         })
       })
