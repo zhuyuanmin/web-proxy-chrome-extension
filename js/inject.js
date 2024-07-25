@@ -78,13 +78,6 @@ console.log("inject.js has loaded!");
     // 请求发起前进入
     onRequest: (config, handler) => {
       if (!config.url.startsWith("http") && !config.url.startsWith("/")) return;
-      console.group(`收到请求，请求地址：${config.url}`);
-      console.log("请求参数:", {
-        method: (config.method || "GET").toUpperCase(),
-        headers: config.headers,
-        body: config.data || config.body,
-      });
-      console.groupEnd();
 
       if (config.url.indexOf(location.origin) > -1 || /^\//.test(config.url)) {
         // 同源请求
@@ -114,8 +107,13 @@ console.log("inject.js has loaded!");
       } else {
         callback((res, flag) => {
           if (flag) {
-            console.group("请求成功，响应地址:", res.url);
-            console.log("响应数据:", res.data);
+            console.group("请求成功，地址:", res.url);
+            console.log("请求参数:", res.config);
+            try {
+              console.log("响应数据:", JSON.parse(res.data));
+            } catch(err) {
+              console.log("响应数据:", res.data);
+            };
             console.groupEnd();
             response.status = 200;
             if (response.config.xhr.responseType === "blob") {
@@ -142,13 +140,6 @@ console.log("inject.js has loaded!");
     get() {
       return (url, options = {}) => {
         if (!url.startsWith("http") && !url.startsWith("/")) return;
-        console.group(`收到请求，请求地址: ${url}`);
-        console.log("请求参数:", {
-          method: (options.method || "GET").toUpperCase(),
-          headers: options.headers,
-          body: options.body,
-        });
-        console.groupEnd();
 
         options.url = url;
         options.data = options.body;
@@ -175,8 +166,13 @@ console.log("inject.js has loaded!");
           return new Promise((resolve, reject) => {
             callback((res, flag) => {
               if (flag) {
-                console.group("请求成功，响应地址:", res.url);
-                console.log("响应数据:", res.data);
+                console.group("请求成功，地址:", res.url);
+                console.log("请求参数:", res.config);
+                try {
+                  console.log("响应数据:", JSON.parse(res.data));
+                } catch(err) {
+                  console.log("响应数据:", res.data);
+                };
                 console.groupEnd();
                 resolve(
                   new Response(
@@ -212,9 +208,9 @@ console.log("inject.js has loaded!");
     const { data, error, response } = e.data;
     if (response) {
       if (error) {
-        respErrs.push({ url: data.config.url, error });
+        respErrs.push({ url: data.config.url, config: data.config.request, error });
       } else {
-        respOks.push({ url: data.config.url, data: data.data });
+        respOks.push({ url: data.config.url, config: data.config.request, data: data.data });
       }
     }
   });
