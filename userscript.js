@@ -14,6 +14,7 @@ function proxyRequest(url, options) {
     method: options.method,
     url,
     headers: options.headers,
+    responseType: options.responseType,
     data:
       typeof options.data === "object"
         ? JSON.stringify(options.data)
@@ -104,7 +105,7 @@ window.addEventListener("access-request", (e) => {
       if (error) {
         respErrs.push({ url, error });
       } else {
-        if (data.readyState === 4 && data.status === 200) {
+        if (data.readyState === 4 && [200, 201].includes(data.status)) {
           const { response } = data;
           respOks.push({ url, data: response });
         } else {
@@ -135,13 +136,13 @@ window.addEventListener("access-request", (e) => {
       // 请求发起前进入
       onRequest: (config, handler) => {
         if (!config.url.startsWith("http") && !config.url.startsWith("/")) return;
-        console.log(
-          "\\n===> 发生请求,请求地址: " +
-            (config.method || "GET").toUpperCase() +
-            " " +
-            config.url
-        );
-        console.log("请求参数: ", config.data || config.body);
+        console.group('收到请求，请求地址：', config.url);
+        console.log("请求参数:", {
+          method: (config.method || "GET").toUpperCase(),
+          headers: config.headers,
+          body: config.data || config.body,
+        });
+        console.groupEnd();
 
         if (config.url.indexOf(location.origin) > -1 || /^\\//.test(config.url)) {
           // 同源请求
@@ -158,7 +159,7 @@ window.addEventListener("access-request", (e) => {
         }
       },
       onError: (err, handler) => {
-        console.log("发生错误,错误信息: ", err.error.type);
+        console.log("请求出错，错误信息: ", err.error.type);
         handler.next(err.error.type);
       },
       onResponse: (response, handler) => {
@@ -170,18 +171,32 @@ window.addEventListener("access-request", (e) => {
         } else {
           callback((res, flag) => {
             if (flag) {
-              console.log("请求成功,响应信息: ", res);
+              console.group("请求成功，响应地址:", res.url);
+              try {
+                console.log("响应数据:", JSON.parse(res.data));
+              } catch(err) {
+                console.log("响应数据:", res.data);
+              }
+              console.groupEnd();
               response.status = 200;
               if (response.config.xhr.responseType === "blob") {
                 response.response = dataURItoBlob(res.data);
               } else if (response.config.xhr.responseType === "json") {
-                response.response = JSON.parse(res.data);
+                if (typeof res.data === 'string') {
+                  try {
+                    response.response = JSON.parse(res.data);
+                  } catch(err) {
+                    response.response = res.data;
+                  }
+                } else {
+                  response.response = res.data;
+                }
               } else {
                 response.response = res.data;
               }
               handler.next(response);
             } else {
-              console.log("发生错误,错误信息: ", res);
+              console.log("请求出错，错误信息: ", res);
             }
           }, response.config.url);
         }
@@ -196,13 +211,13 @@ window.addEventListener("access-request", (e) => {
       get() {
         return (url, options = {}) => {
           if (!url.startsWith("http") && !url.startsWith("/")) return;
-          console.log(
-            "\\n===> 发生请求,请求地址: " +
-              (options.method || "GET").toUpperCase() +
-              " " +
-              url
-          );
-          console.log("请求参数: ", options.body);
+          console.group('收到请求，请求地址: ', url);
+          console.log("请求参数:", {
+            method: (options.method || "GET").toUpperCase(),
+            headers: options.headers,
+            body: options.body,
+          });
+          console.groupEnd();
 
           options.url = url;
           options.data = options.body;
@@ -218,7 +233,7 @@ window.addEventListener("access-request", (e) => {
                   resolve(res);
                 })
                 .catch((err) => {
-                  console.log("发生错误,错误信息: ", err);
+                  console.log("请求出错，错误信息: ", err);
                   reject(err);
                 });
             });
@@ -228,7 +243,13 @@ window.addEventListener("access-request", (e) => {
             return new Promise((resolve, reject) => {
               callback((res, flag) => {
                 if (flag) {
-                  console.log("请求成功,响应信息: ", res);
+                  console.group("请求成功，响应地址:", res.url);
+                  try {
+                    console.log("响应数据:", JSON.parse(res.data));
+                  } catch(err) {
+                    console.log("响应数据:", res.data);
+                  };
+                  console.groupEnd();
                   resolve(
                     new Response(
                       new ReadableStream({
@@ -249,7 +270,7 @@ window.addEventListener("access-request", (e) => {
                     )
                   );
                 } else {
-                  console.log("发生错误,错误信息: ", res);
+                  console.log("请求出错，错误信息: ", res);
                   reject(res);
                 }
               }, options.url);
