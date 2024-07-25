@@ -20,14 +20,42 @@ function proxyRequest(url, options) {
         ? JSON.stringify(options.data)
         : options.data,
     onload(response) {
+      let body = null;
+      try {
+        body = JSON.parse(options.data)
+      } catch (error) {
+        body = options.data
+      }
       window.dispatchEvent(
-        new CustomEvent("response-result", { detail: { url, data: response } })
+        new CustomEvent("response-result", { detail: {
+          url,
+          data: response,
+          config: {
+            method: (options.method || "GET").toUpperCase(),
+            headers: options.headers,
+            body
+          }
+        } })
       );
     },
     onerror(error) {
       console.error(error);
+      let body = null;
+      try {
+        body = JSON.parse(options.data)
+      } catch (error) {
+        body = options.data
+      }
       window.dispatchEvent(
-        new CustomEvent("response-result", { detail: { url, error } })
+        new CustomEvent("response-result", { detail: {
+          url,
+          error,
+          config: {
+            method: (options.method || "GET").toUpperCase(),
+            headers: options.headers,
+            body
+          }
+        } })
       );
     },
   });
@@ -101,15 +129,15 @@ window.addEventListener("access-request", (e) => {
     }
 
     window.addEventListener("response-result", (e) => {
-      const { url, data, error } = e.detail;
+      const { url, data, config, error } = e.detail;
       if (error) {
-        respErrs.push({ url, error });
+        respErrs.push({ url, config, error });
       } else {
         if (data.readyState === 4 && [200, 201].includes(data.status)) {
           const { response } = data;
-          respOks.push({ url, data: response });
+          respOks.push({ url, config, data: response });
         } else {
-          respErrs.push({ url, status: data.status, statusText: data.statusText });
+          respErrs.push({ url, config, status: data.status, statusText: data.statusText });
         }
       }
     });
@@ -136,13 +164,6 @@ window.addEventListener("access-request", (e) => {
       // 请求发起前进入
       onRequest: (config, handler) => {
         if (!config.url.startsWith("http") && !config.url.startsWith("/")) return;
-        console.group('收到请求，请求地址：', config.url);
-        console.log("请求参数:", {
-          method: (config.method || "GET").toUpperCase(),
-          headers: config.headers,
-          body: config.data || config.body,
-        });
-        console.groupEnd();
 
         if (config.url.indexOf(location.origin) > -1 || /^\\//.test(config.url)) {
           // 同源请求
@@ -171,7 +192,8 @@ window.addEventListener("access-request", (e) => {
         } else {
           callback((res, flag) => {
             if (flag) {
-              console.group("请求成功，响应地址:", res.url);
+              console.group("请求成功，地址:", res.url);
+              console.log("请求参数:", res.config);
               try {
                 console.log("响应数据:", JSON.parse(res.data));
               } catch(err) {
@@ -211,13 +233,6 @@ window.addEventListener("access-request", (e) => {
       get() {
         return (url, options = {}) => {
           if (!url.startsWith("http") && !url.startsWith("/")) return;
-          console.group('收到请求，请求地址: ', url);
-          console.log("请求参数:", {
-            method: (options.method || "GET").toUpperCase(),
-            headers: options.headers,
-            body: options.body,
-          });
-          console.groupEnd();
 
           options.url = url;
           options.data = options.body;
@@ -243,7 +258,8 @@ window.addEventListener("access-request", (e) => {
             return new Promise((resolve, reject) => {
               callback((res, flag) => {
                 if (flag) {
-                  console.group("请求成功，响应地址:", res.url);
+                  console.group("请求成功，地址:", res.url);
+                  console.log("请求参数:", res.config);
                   try {
                     console.log("响应数据:", JSON.parse(res.data));
                   } catch(err) {
