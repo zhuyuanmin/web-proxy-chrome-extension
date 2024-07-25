@@ -19,6 +19,13 @@ chrome.runtime.onMessage.addListener(function (e, sender) {
         return res.text()
       })
       .then(data => {
+        let body = null;
+        try {
+          body = JSON.parse(options.data)
+        } catch (error) {
+          body = options.data
+        }
+
         if (options.responseType === 'blob') {
           const reader = new FileReader()
           reader.readAsDataURL(data)
@@ -28,6 +35,11 @@ chrome.runtime.onMessage.addListener(function (e, sender) {
               data: {
                 config: {
                   url,
+                  request: {
+                    method: options.method,
+                    headers: options.headers,
+                    body,
+                  },
                   status: resp.status,
                   statusText: resp.statusText,
                   headers: JSON.parse(JSON.stringify(resp.headers)),
@@ -43,6 +55,11 @@ chrome.runtime.onMessage.addListener(function (e, sender) {
             data: {
               config: {
                 url,
+                request: {
+                  method: options.method,
+                  headers: options.headers,
+                  body,
+                },
                 status: resp.status,
                 statusText: resp.statusText,
                 headers: JSON.parse(JSON.stringify(resp.headers)),
@@ -54,11 +71,22 @@ chrome.runtime.onMessage.addListener(function (e, sender) {
         }
       })
       .catch(err => {
+        let body = null;
+        try {
+          body = JSON.parse(options.data)
+        } catch (error) {
+          body = options.data
+        }
         chrome.tabs.sendMessage(tabId, {
           message: 'XHR_response',
           data: {
             config: {
-              url
+              url,
+              request: {
+                method: options.method,
+                headers: options.headers,
+                body,
+              },
             }
           },
           error: err.toString()
