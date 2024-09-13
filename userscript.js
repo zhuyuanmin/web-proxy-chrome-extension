@@ -16,7 +16,7 @@ function proxyRequest(url, options) {
     headers: options.headers,
     responseType: options.responseType,
     data:
-      typeof options.data === "object"
+      options.data && typeof options.data === "object"
         ? JSON.stringify(options.data)
         : options.data,
     onload(response) {
