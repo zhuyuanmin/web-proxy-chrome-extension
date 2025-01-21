@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         跨域请求脚本
 // @namespace    http://tampermonkey.net/
-// @version      2024-04-28
+// @version      2025-01-21
 // @description  Proxy request to pass cors!
 // @author       zym
 // @match        *://**/*
@@ -81,7 +81,6 @@ window.addEventListener("access-request", (e) => {
      * base64  to Uint8Array
      */
     function dataURItoUnit8Array(dataURI) {
-      const mimeString = dataURI.split(",")[0].split(":")[1].split(";")[0]; // mime类型
       const byteString = atob(dataURI.split(",")[1]); // base64 解码
       const arrayBuffer = new ArrayBuffer(byteString.length); // 创建缓冲数组
       const intArray = new Uint8Array(arrayBuffer);
@@ -202,7 +201,7 @@ window.addEventListener("access-request", (e) => {
               console.groupEnd();
               response.status = 200;
               if (response.config.xhr.responseType === "blob") {
-                response.response = dataURItoBlob(res.data);
+                response.response = typeof res.data === 'string' ? dataURItoBlob(res.data) : res.data;
               } else if (response.config.xhr.responseType === "json") {
                 if (typeof res.data === 'string') {
                   try {
@@ -272,7 +271,7 @@ window.addEventListener("access-request", (e) => {
                         start(controller) {
                           if (options.responseType === "blob") {
                             controller.enqueue(
-                              dataURItoUnit8Array(res.data)
+                              typeof res.data === 'string' ? dataURItoUnit8Array(res.data) : res.data
                             );
                           } else {
                             controller.enqueue(
