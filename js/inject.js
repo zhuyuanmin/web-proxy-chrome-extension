@@ -9,7 +9,6 @@ console.log("inject.js has loaded!");
    * base64  to Uint8Array
    */
   function dataURItoUnit8Array(dataURI) {
-    const mimeString = dataURI.split(",")[0].split(":")[1].split(";")[0]; // mime类型
     const byteString = atob(dataURI.split(",")[1]); // base64 解码
     const arrayBuffer = new ArrayBuffer(byteString.length); // 创建缓冲数组
     const intArray = new Uint8Array(arrayBuffer);
@@ -117,7 +116,7 @@ console.log("inject.js has loaded!");
             console.groupEnd();
             response.status = 200;
             if (response.config.xhr.responseType === "blob") {
-              response.response = dataURItoBlob(res.data);
+              response.response = typeof res.data === 'string' ? dataURItoBlob(res.data) : res.data;
             } else if (response.config.xhr.responseType === "json") {
               response.response = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
             } else {
@@ -180,7 +179,7 @@ console.log("inject.js has loaded!");
                       start(controller) {
                         if (options.responseType === "blob") {
                           controller.enqueue(
-                            dataURItoUnit8Array(res.data)
+                            typeof res.data === 'string' ? dataURItoUnit8Array(res.data) : res.data
                           );
                         } else {
                           controller.enqueue(
